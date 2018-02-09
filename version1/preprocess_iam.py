@@ -89,7 +89,7 @@ def preprocess(img_id):
 	plt.axis('off')
 	fig.axes.get_xaxis().set_visible(False)
 	fig.axes.get_yaxis().set_visible(False)
-	plt.savefig(img_id + "_1", bbox_inches='tight', pad_inches = 0, dpi=300)
+	plt.savefig(img_id, bbox_inches='tight', pad_inches = 0, dpi=300)
 
 
 if __name__ == "__main__":
