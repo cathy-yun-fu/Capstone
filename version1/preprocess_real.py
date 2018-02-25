@@ -10,30 +10,34 @@ def preprocess(img_id):
 
 	# Shadow removal
 	struct = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(30,30))
+	
 	# Remove text from the image, leaving a background
 	closing = cv2.morphologyEx(img, cv2.MORPH_CLOSE, struct)
+	
 	# Remove the background from the original image
-	clean_img = np.divide(img, closing*1.0)
-	# Save as intermediate step
-	fig = plt.imshow(clean_img, 'gray')
-	plt.axis('off')
-	fig.axes.get_xaxis().set_visible(False)
-	fig.axes.get_yaxis().set_visible(False)
-	plt.savefig(img_id + "_1", bbox_inches='tight', pad_inches = 0, dpi=300)
-
-	# Otsu's thresholding
-	clean_img = cv2.imread(img_id + "_1.png", 0)
+	clean_img = img/(closing*1.0)
+	
+	# Normalize pixel values back to uint8
+	min_val = np.amin(clean_img)
+	max_val = np.amax(clean_img)
+	clean_img = ((clean_img-min_val)*(255.0/max_val-min_val))
+	clean_img = np.around(clean_img).astype(np.uint8)
+	
+	# Apply filter to reduce noise
+	clean_img = cv2.GaussianBlur(clean_img,(5,5),0)
+	
+	# Threshold to binary image
 	ret, thresh_img = cv2.threshold(clean_img, 0, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
-
+	
 	# Detect edges
 	im_edges = cv2.Canny(thresh_img, 100, 200)
 
 	# Fill in the text using dilations
 	struct = cv2.getStructuringElement(cv2.MORPH_RECT,(5,5))
 	im2 = cv2.dilate(im_edges, struct, iterations = 15)
-
+	
 	# Find connected components in the image
-	contours, hierarchy = cv2.findContours(im2, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+	im2, contours, hierarchy = cv2.findContours(im2, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 	c_info = []
 	total_area = 0
 	for c in contours:
@@ -47,7 +51,7 @@ def preprocess(img_id):
 	        'y2': y + h - 1,
 	        'area': area
 	    })
-
+	
 	# Sort components by size
 	c_info.sort(key=itemgetter('area'), reverse=True)
 	h, w = im2.shape
@@ -56,6 +60,7 @@ def preprocess(img_id):
 	crop = c['x1'], c['y1'], c['x2'], c['y2']
 	box_size = (c['x2'] - c['x1']) * (c['y2'] - c['y1'])
 	area = c['area']
+	
 	# Calculate F1 score
 	recall = 1.0 * area / total_area
 	prec = 1 - 1.0 * box_size / page_size
@@ -78,10 +83,32 @@ def preprocess(img_id):
 
 	# Crop image to text
 	x1, y1, x2, y2 = crop
-	crop = clean_img[y1:y2+1, x1:x2+1]
+	crop = thresh_img[y1:y2+1, x1:x2+1]
+
+	# Invert the image
+	inv = cv2.bitwise_not(crop)
+
+	# x,y coords of all white pixels
+	coords = np.column_stack(np.where(inv > 0))
+
+	# Find rotated bounding box
+	rect = cv2.minAreaRect(coords)
+	angle = rect[-1]
+	if angle < -45:
+		angle = -(90 + angle)
+	else:
+		angle = -angle
+
+	# rotate the image to deskew it
+	(h_img, w_img) = crop.shape[:2]
+	(h, w) = np.int0(rect[1])
+	center = (rect[0][1], rect[0][0])
+	M = cv2.getRotationMatrix2D(center, angle, 1.0)
+	rotated = cv2.warpAffine(crop, M, (w_img, h_img),
+		flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
 
 	# Save the final image
-	fig = plt.imshow(crop, cmap='gray')
+	fig = plt.imshow(rotated, cmap='gray')
 	plt.axis('off')
 	fig.axes.get_xaxis().set_visible(False)
 	fig.axes.get_yaxis().set_visible(False)
