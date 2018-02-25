@@ -1,6 +1,6 @@
 import preprocess_iam as iam
 import parse_data as parse
-import urllib2
+import urllib.request as urllib2 
 import getpass
 
 if __name__ == "__main__":
@@ -10,7 +10,7 @@ if __name__ == "__main__":
 	print("Downloading data")
 	# Set up authentication for database
 	url = "http://www.fki.inf.unibe.ch/DBs/iamDB/data/"
-	user = raw_input('username: ')
+	user = input('username: ')
 	password = getpass.getpass('password: ')
 	password_manager = urllib2.HTTPPasswordMgrWithDefaultRealm()
 	password_manager.add_password(None, url, user, password)

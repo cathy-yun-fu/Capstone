@@ -13,18 +13,20 @@ def preprocess(img_id):
 
 	# Detect edges
 	im_edges = cv2.Canny(thresh_img, 50, 100)
+
 	# Find straight, horizontal lines
 	lines = cv2.HoughLinesP(im_edges, 1, np.pi/180.0, 50, np.array([]), 100, 2)
 	h,w = im_edges.shape
 	y_top = 0
 	y_bot = h-1
 	half = (h-1)/2
-	for x1, y1, x2, y2 in lines[0]:
-		if y1 == y2:
-			if y1 < half and y1 > y_top:
-				y_top = y1
-			if y1 > half and y1 < y_bot:
-				y_bot = y1
+	for line in lines:
+		for x1, y1, x2, y2 in line:
+			if y1 == y2:
+				if y1 < half and y1 > y_top:
+					y_top = y1
+				if y1 > half and y1 < y_bot:
+					y_bot = y1
 
 	# Crop out database text
 	x1, y1, x2, y2 = 0, y_top, w-1, y_bot
@@ -34,10 +36,10 @@ def preprocess(img_id):
 	im_edges = cv2.Canny(crop1, 100, 200)
 	# Fill in the text using dilations
 	struct = cv2.getStructuringElement(cv2.MORPH_RECT,(5,5))
-	im2 = cv2.dilate(im_edges, struct, iterations = 15)
+	im2 = cv2.dilate(im_edges, struct, iterations = 30)
 
 	# Find connected components in the image
-	contours, hierarchy = cv2.findContours(im2, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+	im2, contours, hierarchy = cv2.findContours(im2, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 	c_info = []
 	total_area = 0
 	for c in contours:
@@ -82,6 +84,9 @@ def preprocess(img_id):
 
 	# Crop again to remove borders
 	x1, y1, x2, y2 = crop
+	cv2.rectangle(crop1,(x1,y1),(x2,y2),(0,255,0),5)
+	plt.imshow(crop1, cmap='gray')
+	plt.show()
 	crop2 = crop1[y1:y2+1, x1:x2+1]
 
 	# Save the final image

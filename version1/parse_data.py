@@ -1,6 +1,6 @@
 import os
 from collections import defaultdict
-import urllib2
+import urllib.request as urllib2
 from bs4 import BeautifulSoup
 
 def create_dict():
