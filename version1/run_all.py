@@ -70,20 +70,24 @@ def Step3():
 	seg.run_character_segementation_module(pre_process_path)
 
 def run_all(step):
+	try:
+		step = int(step)
+	except:
+		print("Error: input is not an integer")
+		return
+
 	if (step <= 1):
 		Step1()
 	if (step <=2):
 		Step2()
 	if (step <=3):
 		Step3()
+	else:
+		print("Invalid step number")
 	
 if __name__ == "__main__":
 	if (len(sys.argv) == 1):
 		run_all(0)
 	else:
 		# run with a number corresponding to step would like to start from
-		try:
-			step = int(sys.argv[1])
-			run_all(step)
-		except:
-			print("input is not an integer")
+		run_all(sys.argv[1])

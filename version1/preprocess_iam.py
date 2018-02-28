@@ -85,10 +85,6 @@ def preprocess(img_url, out_url):
 
 	# Crop again to remove borders
 	x1, y1, x2, y2 = crop
-	cv2.rectangle(crop1,(x1,y1),(x2,y2),(0,255,0),5)
-
-	plt.imshow(crop1, cmap='gray')
-	plt.show()
 	crop2 = crop1[y1:y2+1, x1:x2+1]
 
 	# Save the final image
