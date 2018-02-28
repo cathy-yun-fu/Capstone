@@ -171,28 +171,38 @@ def split_rows(filename, output_dir):
 	# white: 1, black: 0
 	binary_image = np.where(test_image<0.6, 1.0, 0.0)
 
-	# viewer = ImageViewer(binary_image)
-	# viewer.show()
-
 	if not os.path.exists(output_dir):
 		os.makedirs(output_dir)
 
 	flattened_image = binary_image.sum(axis=1)
-	print (flattened_image)
+	
+	# print (max(flattened_image))
+	# print(min(flattened_image))
+	# print(flattened_image)
 
 	top_row = -1
 	bottom_row = -1
 	row_centers = []
 	n = 0
 	for i in range(flattened_image.shape[0]):
-		if flattened_image[i] == 0:
+		if flattened_image[i] <= 0:
 			if top_row < 0:
 				continue
 			else:
-				bottom_row = (i-1)
+				bottom_row = (i)
+				width = int(bottom_row - top_row)
+				print(width)
+				
+				if (width <= 5):
+					top_row = -1
+					bottom_row = -1
+					continue 
+
 				row_centers.append(int(bottom_row - top_row))
 				
 				image = binary_image[top_row:bottom_row,:]
+				# print(str(top_row) + "  " + str(bottom_row))
+
 				# viewer = ImageViewer(image)
 				# viewer.show()
 				fileName = output_dir + "/Row{:1}.jpg".format(n)
@@ -201,8 +211,9 @@ def split_rows(filename, output_dir):
 
 				top_row = -1
 				bottom_row = -1
-
-		if flattened_image[i] != 0:
+		elif flattened_image[i] > 0:
+			if (flattened_image[i] < 10):
+				print("value: " + str(flattened_image[i]))
 			if top_row <0:
 				top_row = i
 			else:

@@ -4,6 +4,7 @@ import os
 import sys
 import cv2
 import os
+import shutil
 
 from PIL import Image
 
@@ -67,6 +68,12 @@ def Step2():
 			iam.preprocess(path,out)
 
 def Step3():
+	folders = [f for f in os.listdir(pre_process_path) if os.path.isdir(os.path.join(pre_process_path, f))]
+	for f in folders: # clean up folder before running
+		if "Paragraph" in f:
+			path = pre_process_path + f
+			print(path)
+			shutil.rmtree(path) # deletes folder that also has content
 	seg.run_character_segementation_module(pre_process_path)
 
 def run_all(step):
