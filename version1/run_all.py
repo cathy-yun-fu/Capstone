@@ -15,7 +15,6 @@ import character_segmentation_v1 as seg
 mypath_iam = "../IAMData/data/"	
 pre_process_path = "../ROOT_DIR/"
 
-
 # download step
 def Step1():
 	if not os.path.exists(mypath_iam):
@@ -83,5 +82,8 @@ if __name__ == "__main__":
 		run_all(0)
 	else:
 		# run with a number corresponding to step would like to start from
-		step = int(sys.argv[1])
-		run_all(step)
+		try:
+			step = int(sys.argv[1])
+			run_all(step)
+		except:
+			print("input is not an integer")
