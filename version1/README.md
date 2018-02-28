@@ -1,6 +1,11 @@
 ## Version 1
 * run_all.py - script to run through the entire design. Call submodules from here
 
+### Running
+run_all.py - will run entire design
+
+run_all.py # - will run starting from step # Ie: run_all.py 2 (starts from step 2)
+
 ### Setting up the environment
 * The libraries needed to run all the scripts in the directory are listed in _requirements.txt_. Update as needed.
 
