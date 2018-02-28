@@ -6,7 +6,6 @@ from skimage.measure import label, regionprops
 from skimage.color import rgb2gray
 from skimage.transform import rotate
 from skimage import io
-
 from skimage.viewer import ImageViewer
 
 def split_into_words(filename, output_dir):
@@ -245,4 +244,4 @@ def run_character_segementation_module(base_directory):
 			split_into_letters(input_dir,output_dir)
 
 
-run_character_segementation_module("System_Test/")
+# run_character_segementation_module("System_Test/")

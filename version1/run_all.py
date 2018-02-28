@@ -10,13 +10,16 @@ from PIL import Image
 # our files
 import preprocess_iam as iam
 import parse_data as parse
+import character_segmentation_v1 as seg
 
 mypath_iam = "../IAMData/data/"	
+pre_process_path = "../ROOT_DIR/"
+
 
 # download step
 def Step1():
 	if not os.path.exists(mypath_iam):
-		os.mkdirs(mypath_iam)
+		os.makedirs(mypath_iam)
 	
 	print("Parsing database")
 	imDict = parse.create_dict()
@@ -45,10 +48,8 @@ def Step1():
 # preprocess step
 def Step2():
 	print("Pre-processing images")
-	pre_process_path = "../IAMData/pre_process/"
-
 	if not os.path.exists(pre_process_path):
-		os.mkdirs(pre_process_path)
+		os.makedirs(pre_process_path)
 	else:
 		files = [f for f in os.listdir(pre_process_path) if os.path.isfile(os.path.join(pre_process_path, f))]
 		for file in files: # clean up folder before running
@@ -67,7 +68,7 @@ def Step2():
 			iam.preprocess(path,out)
 
 def Step3():
-	print("~")
+	seg.run_character_segementation_module(pre_process_path)
 
 def run_all(step):
 	if (step <= 1):
@@ -77,7 +78,6 @@ def run_all(step):
 	if (step <=3):
 		Step3()
 	
-# I wanted to do like you can pick to start from Step1 Step2 etc (so dun have to fetch every time .__.)
 if __name__ == "__main__":
 	if (len(sys.argv) == 1):
 		run_all(0)
