@@ -5,8 +5,9 @@ import matplotlib
 from matplotlib import pyplot as plt
 from operator import itemgetter
 
-def preprocess(img_id):
-	img = cv2.imread(img_id + ".png", 0)
+# added outpath so didn't overwrite file
+def preprocess(img_url, out_url):
+	img = cv2.imread(img_url, 0)
 
 	# Otsu's thresholding
 	ret, thresh_img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
@@ -85,6 +86,7 @@ def preprocess(img_id):
 	# Crop again to remove borders
 	x1, y1, x2, y2 = crop
 	cv2.rectangle(crop1,(x1,y1),(x2,y2),(0,255,0),5)
+
 	plt.imshow(crop1, cmap='gray')
 	plt.show()
 	crop2 = crop1[y1:y2+1, x1:x2+1]
@@ -94,12 +96,12 @@ def preprocess(img_id):
 	plt.axis('off')
 	fig.axes.get_xaxis().set_visible(False)
 	fig.axes.get_yaxis().set_visible(False)
-	plt.savefig(img_id, bbox_inches='tight', pad_inches = 0, dpi=300)
+	plt.savefig(out_url, bbox_inches='tight', pad_inches = 0, dpi=300) # only can save .png format
 
 
 if __name__ == "__main__":
 	assert len(sys.argv) == 2, "No input given."
 	image = sys.argv[1]
 	print("Pre-processing image " + image)
-	preprocess(image)
+	preprocess(image,"_"+image)
 	print("Done")
