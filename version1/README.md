@@ -7,7 +7,30 @@ run_all.py - will run entire design
 run_all.py # - will run starting from step # Ie: run_all.py 2 (starts from step 2)
 
 ### Setting up the environment
-* The libraries needed to run all the scripts in the directory are listed in _requirements.txt_. Update as needed.
+* You'll need Python3 and pip3
+* The commands below are for Linux
+
+__Virtualenv__:
+* To create a virtualenv environment with Python3:
+```
+virtualenv -p python3 [env name]
+```
+* To activate the virtualenv:
+```
+source [env name]/bin/activate
+```
+* All the packages needed are listed in _requirements.txt_. To install using pip:
+```
+pip install -r requirements.txt
+```
+* To update this file (within the virtual environment):
+```
+pip freeze > requirements.txt
+```
+* To leave the virtualenv:
+```
+deactivate
+```
 
 __Anaconda__:
 * The packages needed, with explicit download links, are listed in _spec-file.txt_
