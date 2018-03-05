@@ -219,7 +219,6 @@ def split_rows(filename, output_dir):
 			else:
 				continue
 
-
 def run_character_segementation_module(base_directory):
 	if not os.path.exists(base_directory):
 		print("ERROR MESSAGE!")
@@ -229,6 +228,7 @@ def run_character_segementation_module(base_directory):
 	# folders_in_directory = [f for f in os.listdir(base_directory) if not os.path.isfile(os.path.join(base_directory, f))]
 
 	row_directories = []
+	files_in_directory.sort()
 	for i, file in enumerate(files_in_directory):
 		if file.endswith(".jpg") or file.endswith(".png"):
 			input_dir = os.path.join(base_directory,file)
@@ -237,6 +237,7 @@ def run_character_segementation_module(base_directory):
 			row_directories.append(output_dir)
 
 	word_directories = []
+	row_directories.sort()
 	for directory in row_directories:
 		files_in_directory = [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
 		# rows
@@ -246,6 +247,7 @@ def run_character_segementation_module(base_directory):
 			split_into_words(input_dir,output_dir)
 			word_directories.append(output_dir)
 
+	word_directories.sort()
 	for directory in word_directories:
 		files_in_directory = [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
 		# rows
