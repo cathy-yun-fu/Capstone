@@ -16,7 +16,7 @@ import load_mnist_data
 import plot_graph
 
 
-def build_net1(training_data, width=28, height=28, verbose=False):
+def build_net1(training_data, optimizer, width=28, height=28, verbose=False):
     ''' Build and train neural network. Also offloads the net in .yaml and the
         weights in .h5 to the bin/.
         Arguments:
@@ -55,14 +55,14 @@ def build_net1(training_data, width=28, height=28, verbose=False):
     model.add(Dense(nb_classes, activation='softmax'))
 
     model.compile(loss='categorical_crossentropy',
-                  optimizer='adadelta',
+                  optimizer=optimizer,
                   metrics=['accuracy'])
 
     if verbose == True: print(model.summary())
     return model
 
 
-def build_net2(training_data, width=28, height=28, verbose=False):
+def build_net2(training_data, optimizer, width=28, height=28, verbose=False):
     (x_train, y_train), (x_test, y_test), mapping, nb_classes = training_data
     input_shape = (height, width, 1)
 
@@ -101,7 +101,7 @@ def build_net2(training_data, width=28, height=28, verbose=False):
     model.add(Dense(nb_classes, activation='softmax'))
 
     model.compile(loss='categorical_crossentropy',
-                  optimizer='adadelta',
+                  optimizer=optimizer,
                   metrics=['accuracy'])
 
     if verbose == True: print(model.summary())
@@ -209,8 +209,8 @@ if __name__ == '__main__':
 
             # Training
             if ver == 'v1':
-                model = build_net1(training_data=training_data, width=28, height=28)
+                model = build_net1(training_data, optimizer, width=28, height=28)
             else:
-                model = build_net2(training_data, width=args.width, height=args.height, verbose=args.verbose)
+                model = build_net2(training_data, optimizer, width=args.width, height=args.height, verbose=args.verbose)
             train(model, training_data, dir_name=dir_name, epochs=args.epochs)
 
