@@ -9,8 +9,9 @@ import pickle
 
 # Global variables
 DESIRED_SIZE = 28
-MAPPING_DIST = "bin/mapping.p"
+MAPPING_DIST = "bin/balanced_mapping.p"
 OUTPUT_FILE = "Output.txt"
+MODEL_PATH = 'bin/old/balanced30_v2/'
 
 def resize_img(im_pth, desired_size):
     im = cv2.imread(im_pth, cv2.COLOR_BGR2GRAY)
@@ -37,14 +38,14 @@ def resize_img(im_pth, desired_size):
     return new_im
 
 
-def load_model():
+def load_model(model_path):
     # load YAML and create model
-    yaml_file = open('bin/model.yaml', 'r')
+    yaml_file = open(model_path + 'model.yaml', 'r')
     loaded_model_yaml = yaml_file.read()
     yaml_file.close()
     loaded_model = model_from_yaml(loaded_model_yaml)
     # load weights into new model
-    loaded_model.load_weights("bin/model.h5")
+    loaded_model.load_weights(model_path + "model.h5")
     print("Loaded model from disk")
 
     # evaluate loaded model on test data
@@ -53,9 +54,9 @@ def load_model():
 
 
 if __name__ == '__main__':
-    model = load_model()
+    model = load_model(MODEL_PATH)
     sentence = []
-    for word_im_pth in sorted(glob.glob('paragraph/Row*/Word*/')):
+    for word_im_pth in sorted(glob.glob('../ROOT_DIR/paragraph1/Row*/Word*/')):
         for im_pth in sorted(glob.glob(word_im_pth + '*.jpg')):
             print('predicting image ', im_pth)
             new_img = resize_img(im_pth, DESIRED_SIZE)
