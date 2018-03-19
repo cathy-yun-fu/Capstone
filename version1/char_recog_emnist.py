@@ -159,8 +159,6 @@ def train(model, training_data, dir_name, batch_size=256, epochs=30):
           validation_data=(x_test, y_test),
           callbacks=None)
 
-    analyze_training(history_callback, dir_name)
-
     score = model.evaluate(x_test, y_test, verbose=0)
     print('Test score:', score[0])
     print('Test accuracy:', score[1])
@@ -170,6 +168,8 @@ def train(model, training_data, dir_name, batch_size=256, epochs=30):
     with open('bin/' + dir_name + '/model.yaml', "w") as yaml_file:
         yaml_file.write(model_yaml)
     save_model(model, 'bin/' + dir_name + '/model.h5')
+    analyze_training(history_callback, dir_name)
+
 
 
 def analyze_training(history_callback, dir_name):
@@ -183,9 +183,6 @@ def analyze_training(history_callback, dir_name):
     validation_loss = np.array(history_callback.history['val_loss'])
     validation_acc = np.array(history_callback.history['val_acc'])
 
-    if len(validation_loss) > 0:
-        validation_loss = []
-        validation_acc = []
     plot_graph.generate_graph(training_loss, training_acc, validation_loss, validation_acc,
                               title=dir_name, output_dir=output_dir)
 
@@ -202,7 +199,7 @@ def baseline_model(num_pixels):
     y_train = np_utils.to_categorical(y_train, nb_classes)
     y_test = np_utils.to_categorical(y_test, nb_classes)
 
-    model.fit(x_train, y_train, validation_data=(x_test, y_test), epochs=10, batch_size=200, verbose=2)
+    model.fit(x_train, y_train, validation_data=(x_test, y_test), epochs=3, batch_size=200, verbose=2)
 
     return model
 
@@ -214,7 +211,7 @@ if __name__ == '__main__':
     parser.add_argument('--width', type=int, default=28, help='Width of the images')
     parser.add_argument('--height', type=int, default=28, help='Height of the images')
     parser.add_argument('--max', type=int, default=None, help='Max amount of data to use')
-    parser.add_argument('--epochs', type=int, default=10, help='Number of epochs to train on')
+    parser.add_argument('--epochs', type=int, default=30, help='Number of epochs to train on')
     parser.add_argument('--verbose', action='store_true', default=False, help='Enables verbose printing')
     args = parser.parse_args()
 
@@ -228,6 +225,8 @@ if __name__ == '__main__':
     training_data = load_mnist_data.load_data(args.file, args.outdir, width=args.width, height=args.height,
                                               max_=args.max, verbose=args.verbose)
 
+
+    # model = baseline_model(28*28)
     model = build_vgg16_model1(training_data=training_data, width=28, height=28)
     # model = build_net(training_data, width=args.width, height=args.height, verbose=args.verbose)
     train(model, training_data, dir_name=args.outdir, epochs=args.epochs)
