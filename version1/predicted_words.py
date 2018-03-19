@@ -6,11 +6,12 @@ from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.layers import Dense, Dropout, Merge, LSTM
 import yaml
 import pickle
+import re
 
 # Global variables
 DESIRED_SIZE = 28
 MAPPING_DIST = "bin/balanced_mapping.p"
-OUTPUT_FILE = "Output.txt"
+OUTPUT_FILE = "predict_out2.txt"
 MODEL_PATH = 'bin/old/balanced30_v2/'
 
 def resize_img(im_pth, desired_size):
@@ -49,15 +50,26 @@ def load_model(model_path):
     print("Loaded model from disk")
 
     # evaluate loaded model on test data
-    loaded_model.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
+    loaded_model.compile(loss='binary_crossentropy', optimizer='Adadelta', metrics=['accuracy'])
     return loaded_model
 
+
+def alphanumeric_sort(list):
+    """ Sorts the given iterable in the way that is expected.
+
+    Required arguments:
+    l -- The iterable to be sorted.
+
+    """
+    convert = lambda text: int(text) if text.isdigit() else text
+    alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
+    return sorted(list, key=alphanum_key)
 
 if __name__ == '__main__':
     model = load_model(MODEL_PATH)
     sentence = []
-    for word_im_pth in sorted(glob.glob('../ROOT_DIR/paragraph1/Row*/Word*/')):
-        for im_pth in sorted(glob.glob(word_im_pth + '*.jpg')):
+    for word_im_pth in alphanumeric_sort(glob.glob('../ROOT_DIR/paragraph7/Row*/Word*/')):
+        for im_pth in alphanumeric_sort(glob.glob(word_im_pth + '*.jpg')):
             print('predicting image ', im_pth)
             new_img = resize_img(im_pth, DESIRED_SIZE)
             new_img = new_img / 255
