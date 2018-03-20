@@ -4,7 +4,7 @@ import numpy as np
 
 
 
-def load_data(mat_file_path, dir_name, width=28, height=28, max_=None, verbose=True):
+def load_data(mat_file_path, width=28, height=28, max_=None, verbose=True):
     ''' Load data in from .mat file as specified by the paper.
         Arguments:
             mat_file_path: path to the .mat, should be in sample/
@@ -41,7 +41,7 @@ def load_data(mat_file_path, dir_name, width=28, height=28, max_=None, verbose=T
 
     # Load char mapping
     mapping = {kv[0]:kv[1:][0] for kv in mat['dataset'][0][0][2]}
-    pickle.dump(mapping, open('bin/' + dir_name + '/mapping.p', 'wb'))
+    pickle.dump(mapping, open('bin/balanced_mapping.p', 'wb'))
 
     # Load training data
     if max_ == None:
@@ -60,14 +60,14 @@ def load_data(mat_file_path, dir_name, width=28, height=28, max_=None, verbose=T
     # Reshape training data to be valid
     if verbose == True: _len = len(training_images)
     for i in range(len(training_images)):
-        if verbose == True: print('%d/%d (%.2lf%%)' % (i + 1, _len, ((i + 1)/_len) * 100), end='\r')
+        if verbose == True: print('%d/%d (%.2lf%%)' % (i + 1, _len, ((i + 1)/_len) * 100))
         training_images[i] = rotate(training_images[i])
     if verbose == True: print('')
 
     # Reshape testing data to be valid
     if verbose == True: _len = len(testing_images)
     for i in range(len(testing_images)):
-        if verbose == True: print('%d/%d (%.2lf%%)' % (i + 1, _len, ((i + 1)/_len) * 100), end='\r')
+        if verbose == True: print('%d/%d (%.2lf%%)' % (i + 1, _len, ((i + 1)/_len) * 100))
         testing_images[i] = rotate(testing_images[i])
     if verbose == True: print('')
 

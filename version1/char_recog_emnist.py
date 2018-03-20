@@ -16,7 +16,7 @@ import load_mnist_data
 import plot_graph
 
 
-def build_net(training_data, width=28, height=28, verbose=False):
+def build_net1(training_data, optimizer, width=28, height=28, verbose=False):
     ''' Build and train neural network. Also offloads the net in .yaml and the
         weights in .h5 to the bin/.
         Arguments:
@@ -55,14 +55,14 @@ def build_net(training_data, width=28, height=28, verbose=False):
     model.add(Dense(nb_classes, activation='softmax'))
 
     model.compile(loss='categorical_crossentropy',
-                  optimizer='adadelta',
+                  optimizer=optimizer,
                   metrics=['accuracy'])
 
     if verbose == True: print(model.summary())
     return model
 
 
-def build_vgg16_model1(training_data, width=28, height=28, verbose=False):
+def build_net2(training_data, optimizer, width=28, height=28, verbose=False):
     (x_train, y_train), (x_test, y_test), mapping, nb_classes = training_data
     input_shape = (height, width, 1)
 
@@ -91,59 +91,22 @@ def build_vgg16_model1(training_data, width=28, height=28, verbose=False):
                             kernel_size=kernel_size,
                             activation='relu'))
     model.add(MaxPooling2D(pool_size=pool_size))
-    # model.add(Dropout(0.5))
-    # model.add(Conv2D(filters=32,
-    #                         kernel_size=kernel_size,
-    #                         padding='valid',
-    #                         activation='relu'))
-    # model.add(Conv2D(filters=32,
-    #                         kernel_size=kernel_size,
-    #                         activation='relu'))
-    # model.add(MaxPooling2D(pool_size=pool_size))
     model.add(Dropout(0.5))
     model.add(Flatten())
 
     model.add(Dense(256, activation='relu'))
     model.add(Dropout(0.5))
+    model.add(Dense(256, activation='relu'))
+    model.add(Dropout(0.5))
     model.add(Dense(nb_classes, activation='softmax'))
 
     model.compile(loss='categorical_crossentropy',
-                  optimizer='adadelta',
+                  optimizer=optimizer,
                   metrics=['accuracy'])
 
     if verbose == True: print(model.summary())
     return model
 
-
-
-
-def build_vgg16_model2(training_data, width=28, height=28):
-    (x_train, y_train), (x_test, y_test), mapping, nb_classes = training_data
-
-    # Get back the convolutional part of a VGG network trained on ImageNet
-    model_vgg16_conv = VGG16(weights='imagenet', include_top=False, pooling='max')
-    model_vgg16_conv.summary()
-
-    # Use the generated model
-    input_shape = Input(shape=(244, 244, 3), name='image_input')
-
-    output_vgg16_conv = model_vgg16_conv(input_shape)
-
-    # Add the fully-connected layers
-    x = Flatten(name='flatten')(output_vgg16_conv)
-    x = Dense(4096, activation='relu', name='fc1')(x)
-    x = Dense(4096, activation='relu', name='fc2')(x)
-    x = Dense(nb_classes, activation='softmax', name='predictions')(x)
-
-    # Create your own model
-    model = Model(input=input_shape, output=x)
-
-    # In the summary, weights and layers from VGG part will be hidden, but they will be fit during the training
-    model.summary()
-    model.compile(loss='categorical_crossentropy',
-                  optimizer='adadelta',
-                  metrics=['accuracy'])
-    return model
 
 def train(model, training_data, dir_name, batch_size=256, epochs=30):
     (x_train, y_train), (x_test, y_test), mapping, nb_classes = training_data
@@ -165,6 +128,7 @@ def train(model, training_data, dir_name, batch_size=256, epochs=30):
 
     # Offload model to file
     model_yaml = model.to_yaml()
+
     with open('bin/' + dir_name + '/model.yaml', "w") as yaml_file:
         yaml_file.write(model_yaml)
     save_model(model, 'bin/' + dir_name + '/model.h5')
@@ -175,6 +139,9 @@ def train(model, training_data, dir_name, batch_size=256, epochs=30):
 def analyze_training(history_callback, dir_name):
     # Callback for analysis in TensorBoard
     output_dir = './Graph/' + dir_name
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
     keras.callbacks.TensorBoard(log_dir=output_dir, histogram_freq=0, write_graph=True, write_images=True)
 
     training_loss = np.array(history_callback.history['loss'])
@@ -185,6 +152,13 @@ def analyze_training(history_callback, dir_name):
 
     plot_graph.generate_graph(training_loss, training_acc, validation_loss, validation_acc,
                               title=dir_name, output_dir=output_dir)
+    with open(output_dir + '/training_result.txt', "w") as text_file:
+        text_file.write("training loss is :" + str(training_loss) + '\n')
+        text_file.write("training accuracy is :" + str(training_acc) + '\n')
+        text_file.write("validation_loss loss is :" + str(validation_loss) + '\n')
+        text_file.write("validation_acc loss is :" + str(validation_acc) + '\n')
+
+
 
 def baseline_model(num_pixels):
     (x_train, y_train), (x_test, y_test), mapping, nb_classes = training_data
@@ -219,14 +193,24 @@ if __name__ == '__main__':
     if not os.path.exists(bin_dir):
         os.makedirs(bin_dir)
 
-    if not os.path.exists(bin_dir + '/' + args.outdir):
-        os.makedirs(bin_dir + '/' + args.outdir)
-
-    training_data = load_mnist_data.load_data(args.file, args.outdir, width=args.width, height=args.height,
+    training_data = load_mnist_data.load_data(args.file, width=args.width, height=args.height,
                                               max_=args.max, verbose=args.verbose)
 
+    optimizer = ['adam', 'RMSprop', 'Adagrad', 'Adadelta']
+    version = ['v1', 'v2']
 
-    # model = baseline_model(28*28)
-    model = build_vgg16_model1(training_data=training_data, width=28, height=28)
-    # model = build_net(training_data, width=args.width, height=args.height, verbose=args.verbose)
-    train(model, training_data, dir_name=args.outdir, epochs=args.epochs)
+    for ver in version:
+        for op in optimizer:
+            # Create directory 
+            dir_name = args.outdir + '_' + op + '_' + ver
+            if not os.path.exists(bin_dir + dir_name):
+                os.makedirs(bin_dir + dir_name)
+            print("currently training on : ", dir_name)
+
+            # Training
+            if ver == 'v1':
+                model = build_net1(training_data, op, width=28, height=28)
+            else:
+                model = build_net2(training_data, op, width=args.width, height=args.height, verbose=args.verbose)
+            train(model, training_data, dir_name=dir_name, epochs=args.epochs)
+
