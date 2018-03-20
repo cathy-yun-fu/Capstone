@@ -209,8 +209,8 @@ if __name__ == '__main__':
 
             # Training
             if ver == 'v1':
-                model = build_net1(training_data, optimizer, width=28, height=28)
+                model = build_net1(training_data, op, width=28, height=28)
             else:
-                model = build_net2(training_data, optimizer, width=args.width, height=args.height, verbose=args.verbose)
+                model = build_net2(training_data, op, width=args.width, height=args.height, verbose=args.verbose)
             train(model, training_data, dir_name=dir_name, epochs=args.epochs)
 
