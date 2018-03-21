@@ -270,4 +270,4 @@ def run_character_segementation_module(base_directory):
 			split_into_letters(input_dir,output_dir)
 
 
-run_character_segementation_module("../ROOT_DIR/")
+# run_character_segementation_module("../ROOT_DIR/")
