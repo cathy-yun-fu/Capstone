@@ -48,9 +48,10 @@ def split_into_words(filename, output_dir):
 	rows=[]
 	rows.append(0)
 
-	fontSize = int(binary_image.shape[1]/7)
-	# print ("fontSize: ")
-	# print(fontSize)	
+	fontSize = int(binary_image.shape[1]/4) # param - low cuz current method of cropping leaves alot of white space above and below actual chars
+	print (filename)
+	print ("fontSize: ")
+	print(fontSize)	
 
 	# fontSize = 20
 
@@ -78,6 +79,7 @@ def split_into_words(filename, output_dir):
 		# viewer.show()
 		fileName = output_dir + "/Img{:1}.jpg".format(i)
 		io.imsave(fileName,image)
+
 
 def create_crop_box(box,numRow,numCol):
 	# bounding box: (min_row, min_col, max_row, max_col)
@@ -214,8 +216,8 @@ def split_rows(filename, output_dir):
 				top_row = -1
 				bottom_row = -1
 		elif flattened_image[i] > 0:
-			if (flattened_image[i] < 10):
-				print("value: " + str(flattened_image[i]))
+			# if (flattened_image[i] < 10):
+			# 	print("value: " + str(flattened_image[i]))
 			if top_row <0:
 				top_row = i
 			else:
@@ -270,4 +272,4 @@ def run_character_segementation_module(base_directory):
 			split_into_letters(input_dir,output_dir)
 
 
-# run_character_segementation_module("../ROOT_DIR/")
+run_character_segementation_module("../ROOT_DIR/")
