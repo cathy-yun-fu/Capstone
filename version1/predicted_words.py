@@ -13,7 +13,7 @@ import argparse
 # Global variables
 DESIRED_SIZE = 28
 MAPPING_DIST = "bin/balanced_mapping.p"
-OUTPUT_FILE = "predict_out2.txt"
+OUTPUT_FILE = "predict_out.txt"
 MODEL_PATH = 'bin/old/balanced30_v2/'
 PARAGRAPH_DIR = '../ROOT_DIR/paragraph7/Row*/Word*/'
 TEST_DIR = 'test_data/'
