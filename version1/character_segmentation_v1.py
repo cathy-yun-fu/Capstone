@@ -8,6 +8,8 @@ from skimage.transform import rotate
 from skimage import io
 from skimage.viewer import ImageViewer
 
+import re
+
 def split_into_words(filename, output_dir):
 	test_image = io.imread(filename)
 	test_image = rotate(test_image, -90, resize=True)
@@ -27,7 +29,7 @@ def split_into_words(filename, output_dir):
 	label_image = label(binary_image)
 	num = label_image.max()
 
-	print (num)
+	# print (num)
 
 	regionprops_data = regionprops(label_image)
 
@@ -38,7 +40,7 @@ def split_into_words(filename, output_dir):
 			remove_indices.append(i)
 
 	num = num - len(remove_indices)
-	print(num)
+	# print(num)
 
 	for i in sorted(remove_indices, reverse=True):
 		del regionprops_data[i]
@@ -46,7 +48,8 @@ def split_into_words(filename, output_dir):
 	rows=[]
 	rows.append(0)
 
-	fontSize = int(binary_image.shape[1]/7)
+	fontSize = int(binary_image.shape[1]/4) # param - low cuz current method of cropping leaves alot of white space above and below actual chars
+	print (filename)
 	print ("fontSize: ")
 	print(fontSize)	
 
@@ -76,6 +79,7 @@ def split_into_words(filename, output_dir):
 		# viewer.show()
 		fileName = output_dir + "/Img{:1}.jpg".format(i)
 		io.imsave(fileName,image)
+
 
 def create_crop_box(box,numRow,numCol):
 	# bounding box: (min_row, min_col, max_row, max_col)
@@ -107,7 +111,7 @@ def split_into_letters(filename, output_dir):
 	test_image = io.imread(filename)
 	test_image = rotate(test_image, -90, resize=True)
 
-	print(test_image.shape)
+	# print(test_image.shape)
 
 	if len(test_image.shape) > 2 and test_image.shape[2] > 1:
 		test_image = rgb2gray(test_image)
@@ -123,7 +127,7 @@ def split_into_letters(filename, output_dir):
 	label_image = label(binary_image)
 	num = label_image.max()
 
-	print (num)
+	# print (num)
 
 	if not os.path.exists(output_dir):
 		os.makedirs(output_dir)
@@ -140,8 +144,8 @@ def split_into_letters(filename, output_dir):
 		# bounding box: (min_row, min_col, max_row, max_col)
 		r1,r2,c1,c2 = create_crop_box(regionprops_data[0].bbox, binary_image.shape[0],binary_image.shape[1])
 		maskedImage = maskedImage[r1:r2,c1:c2]
-		print(i)
-		print(regionprops_data[0].bbox)
+		# print(i)
+		# print(regionprops_data[0].bbox)
 		# print("{:1} {:2} {:3} {:4}".format(r1,r2,c1,c2))
 		
 		maskedImage = rotate(maskedImage, 90, resize=True)
@@ -158,14 +162,14 @@ def split_rows(filename, output_dir):
 	test_image = io.imread(filename)
 	# test_image = rotate(test_image, -90, resize=True)
 
-	print(test_image.shape)
+	# print(test_image.shape)
 
 	if len(test_image.shape) > 2 and test_image.shape[2] > 1:
 		test_image = rgb2gray(test_image)
 
 	viewer = ImageViewer(test_image)
 	viewer.show()
-	print (test_image.shape)
+	# print (test_image.shape) # temp
 
 	# white on black
 	# white: 1, black: 0
@@ -191,7 +195,7 @@ def split_rows(filename, output_dir):
 			else:
 				bottom_row = (i)
 				width = int(bottom_row - top_row)
-				print(width)
+				# print(width)
 				
 				if (width <= 5):
 					top_row = -1
@@ -212,12 +216,21 @@ def split_rows(filename, output_dir):
 				top_row = -1
 				bottom_row = -1
 		elif flattened_image[i] > 0:
-			if (flattened_image[i] < 10):
-				print("value: " + str(flattened_image[i]))
+			# if (flattened_image[i] < 10):
+			# 	print("value: " + str(flattened_image[i]))
 			if top_row <0:
 				top_row = i
 			else:
 				continue
+
+def alphanumeric_sort(list):
+    """ Sorts the given iterable in the way that is expected.
+    Required arguments:
+    l -- The iterable to be sorted.
+    """
+    convert = lambda text: int(text) if text.isdigit() else text
+    alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
+    return sorted(list, key=alphanum_key)
 
 def run_character_segementation_module(base_directory):
 	if not os.path.exists(base_directory):
@@ -227,8 +240,8 @@ def run_character_segementation_module(base_directory):
 	files_in_directory = [f for f in os.listdir(base_directory) if os.path.isfile(os.path.join(base_directory, f))]
 	# folders_in_directory = [f for f in os.listdir(base_directory) if not os.path.isfile(os.path.join(base_directory, f))]
 
-	row_directories = []
-	files_in_directory.sort()
+	row_directories = [] 
+	# doesn't need to be sorted, each file should be a paragraph
 	for i, file in enumerate(files_in_directory):
 		if file.endswith(".jpg") or file.endswith(".png"):
 			input_dir = os.path.join(base_directory,file)
@@ -237,9 +250,10 @@ def run_character_segementation_module(base_directory):
 			row_directories.append(output_dir)
 
 	word_directories = []
-	row_directories.sort()
+	# row_directories
 	for directory in row_directories:
 		files_in_directory = [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
+		files_in_directory = alphanumeric_sort(files_in_directory)
 		# rows
 		for i, file in enumerate(files_in_directory):
 			input_dir = os.path.join(directory,file)
@@ -247,9 +261,10 @@ def run_character_segementation_module(base_directory):
 			split_into_words(input_dir,output_dir)
 			word_directories.append(output_dir)
 
-	word_directories.sort()
+	# word_directories = alphanumeric_sort(word_directories)
 	for directory in word_directories:
 		files_in_directory = [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
+		files_in_directory = alphanumeric_sort(files_in_directory)
 		# rows
 		for i, file in enumerate(files_in_directory):
 			input_dir = os.path.join(directory,file)
@@ -257,4 +272,4 @@ def run_character_segementation_module(base_directory):
 			split_into_letters(input_dir,output_dir)
 
 
-# run_character_segementation_module("System_Test/")
+run_character_segementation_module("../ROOT_DIR/")

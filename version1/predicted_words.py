@@ -7,12 +7,16 @@ from keras.layers import Dense, Dropout, Merge, LSTM
 import yaml
 import pickle
 import re
+import argparse
+
 
 # Global variables
 DESIRED_SIZE = 28
 MAPPING_DIST = "bin/balanced_mapping.p"
-OUTPUT_FILE = "predict_out2.txt"
+OUTPUT_FILE = "predict_out.txt"
 MODEL_PATH = 'bin/old/balanced30_v2/'
+PARAGRAPH_DIR = '../ROOT_DIR/paragraph7/Row*/Word*/'
+TEST_DIR = 'test_data/'
 
 def resize_img(im_pth, desired_size):
     im = cv2.imread(im_pth, cv2.COLOR_BGR2GRAY)
@@ -65,10 +69,20 @@ def alphanumeric_sort(list):
     alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
     return sorted(list, key=alphanum_key)
 
+
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(usage='A script for predcting the image with model.yaml')
+    parser.add_argument('--test', action='store_true', default=False, help='use test folder')
+    args = parser.parse_args()
+
+    if args.test:
+        img_dir_path = TEST_DIR
+    else:
+        img_dir_path = PARAGRAPH_DIR
+
     model = load_model(MODEL_PATH)
     sentence = []
-    for word_im_pth in alphanumeric_sort(glob.glob('../ROOT_DIR/paragraph7/Row*/Word*/')):
+    for word_im_pth in alphanumeric_sort(glob.glob(img_dir_path)):
         for im_pth in alphanumeric_sort(glob.glob(word_im_pth + '*.jpg')):
             print('predicting image ', im_pth)
             new_img = resize_img(im_pth, DESIRED_SIZE)
