@@ -1,0 +1,10 @@
+Thus for the specific case of niobium in a sodium
+circuit a corrosion indicator could be a reference
+electrode of sodium saturated and equilibrated
+with niobium separated from the coolant by a
+solid anionic electrolyte. A negative voltage from
+the reference electrode would mean oxidizing
+conditions for niobium and positive voltage, non-
+oxidizing conditions. The practical application of
+the above idea will involve considerable experimenta-
+tion before it can be realised.

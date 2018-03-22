@@ -1,0 +1,6 @@
+At the end of five days, bismuth-210 will have
+reached one-half of its equilibrium value and
+can be counted through an aluminium absorber
+sufficiently thick to stop the beta particles
+from lead-210 and the alpha particles from
+polonium-210.
