@@ -1,10 +1,8 @@
-from PIL import Image, ImageOps
 import cv2
 import glob
-from keras.models import Sequential, load_model, model_from_yaml
-from keras.callbacks import EarlyStopping, ModelCheckpoint
-from keras.layers import Dense, Dropout, Merge, LSTM
-import yaml
+from keras.models import model_from_yaml
+import os
+from os.path import basename
 import pickle
 import re
 import argparse
@@ -13,10 +11,11 @@ import argparse
 # Global variables
 DESIRED_SIZE = 28
 MAPPING_DIST = "bin/balanced_mapping.p"
-OUTPUT_FILE = "predict_out.txt"
+OUTPUT_DIR = "predicted_paragraph/"
 MODEL_PATH = 'bin/old/balanced30_v2/'
-PARAGRAPH_DIR = '../ROOT_DIR/paragraph7/Row*/Word*/'
+PARAGRAPH_DIR = '../sampleGenerator/ROOT_DIR/*'
 TEST_DIR = 'test_data/'
+TARGET_FILE_PATH = '../sampleGenerator/textfile/'
 
 def resize_img(im_pth, desired_size):
     im = cv2.imread(im_pth, cv2.COLOR_BGR2GRAY)
@@ -70,6 +69,24 @@ def alphanumeric_sort(list):
     return sorted(list, key=alphanum_key)
 
 
+def get_accuracy(predicted, target_path):
+    file = open(TARGET_FILE_PATH + target_path + '.txt', "r")
+    fileContent = file.read()
+    target = list(fileContent)
+
+    if len(target) > len(predicted):
+        arr = predicted
+    else:
+        arr = target
+
+    count = 0
+    for index in range(len(arr)):
+        if predicted[index] == target[index]:
+            count += 1
+
+    return count/len(arr)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(usage='A script for predcting the image with model.yaml')
     parser.add_argument('--test', action='store_true', default=False, help='use test folder')
@@ -80,21 +97,26 @@ if __name__ == '__main__':
     else:
         img_dir_path = PARAGRAPH_DIR
 
-    model = load_model(MODEL_PATH)
-    sentence = []
-    for word_im_pth in alphanumeric_sort(glob.glob(img_dir_path)):
-        for im_pth in alphanumeric_sort(glob.glob(word_im_pth + '*.jpg')):
-            print('predicting image ', im_pth)
-            new_img = resize_img(im_pth, DESIRED_SIZE)
-            new_img = new_img / 255
-            new_img = new_img.reshape(1, 28, 28, 1)
-            label = model.predict_classes(new_img)
-            mapping = pickle.load(open(MAPPING_DIST, "rb"))
-            character = chr(mapping[label[0]])
-            sentence.append(character)
-            print('predicted char:', character)
-        sentence.append(' ')
+    if not os.path.exists(OUTPUT_DIR):
+        os.makedirs(OUTPUT_DIR)
 
-    print(sentence)
-    with open(OUTPUT_FILE, "w") as text_file:
-        text_file.write(''.join(sentence))
+    model = load_model(MODEL_PATH)
+    text_name = ''
+    for para_path in alphanumeric_sort(glob.glob(img_dir_path)):
+        sentence = []
+        text_name = basename(para_path).split(';')[0]
+        for word_im_pth in alphanumeric_sort(glob.glob(para_path + '/Row*/Word*/')):
+            for im_pth in alphanumeric_sort(glob.glob(word_im_pth + '*.jpg')):
+                print('predicting image ', im_pth)
+                new_img = resize_img(im_pth, DESIRED_SIZE)
+                new_img = new_img / 255
+                new_img = new_img.reshape(1, 28, 28, 1)
+                label = model.predict_classes(new_img)
+                mapping = pickle.load(open(MAPPING_DIST, "rb"))
+                character = chr(mapping[label[0]])
+                sentence.append(character.lower())
+                print('predicted char:', character)
+            sentence.append(' ')
+        print("accuracy is : ", get_accuracy(sentence, text_name))
+        with open(OUTPUT_DIR + str(text_name) + '.txt', "w") as text_file:
+            text_file.write(''.join(sentence))
