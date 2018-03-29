@@ -1,6 +1,7 @@
 import os
 import math
 import numpy as np
+import re # alphaneumeric order
 
 from skimage.measure import label, regionprops
 from skimage.color import rgb2gray
@@ -8,7 +9,6 @@ from skimage.transform import rotate
 from skimage import io
 from skimage.viewer import ImageViewer
 
-import re
 
 def split_into_words(filename, output_dir):
 	test_image = io.imread(filename)
@@ -21,7 +21,8 @@ def split_into_words(filename, output_dir):
 	if len(test_image.shape) > 2 and test_image.shape[2] > 1:
 		test_image = rgb2gray(test_image)
 
-	binary_image = np.where(test_image<0.4, 0.0, 1.0)
+	print ("wee: {:1}".format(test_image.max()))
+	binary_image = np.where(test_image<0.6, 0.0, 1.0)
 
 	# viewer = ImageViewer(binary_image)
 	# viewer.show()
@@ -167,13 +168,14 @@ def split_rows(filename, output_dir):
 	if len(test_image.shape) > 2 and test_image.shape[2] > 1:
 		test_image = rgb2gray(test_image)
 
-	viewer = ImageViewer(test_image)
-	viewer.show()
+	# viewer = ImageViewer(test_image)
+	# viewer.show()
 	# print (test_image.shape) # temp
-
+# 
 	# white on black
 	# white: 1, black: 0
-	binary_image = np.where(test_image<0.6, 1.0, 0.0)
+	# binary_image = np.where(test_image<0.6, 1.0, 0.0)
+	binary_image = np.where(test_image<200, 1.0, 0.0)
 
 	if not os.path.exists(output_dir):
 		os.makedirs(output_dir)
@@ -244,8 +246,9 @@ def run_character_segementation_module(base_directory):
 	# doesn't need to be sorted, each file should be a paragraph
 	for i, file in enumerate(files_in_directory):
 		if file.endswith(".jpg") or file.endswith(".png"):
+			name = file.split(".");
 			input_dir = os.path.join(base_directory,file)
-			output_dir = os.path.join(base_directory,"Paragraph{:1}".format(i))
+			output_dir = os.path.join(base_directory,"{:1}".format(name[0]))
 			split_rows(input_dir, output_dir)
 			row_directories.append(output_dir)
 
