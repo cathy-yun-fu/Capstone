@@ -9,77 +9,12 @@ from skimage.transform import rotate
 from skimage import io
 from skimage.viewer import ImageViewer
 
+CIRCULARITY_THRESHOLD = 0.2
+# CIRCULARITY_THRESHOLD = 1
 
-def split_into_words(filename, output_dir):
-	test_image = io.imread(filename)
-	test_image = rotate(test_image, -90, resize=True)
-
-	# viewer = ImageViewer(test_image)
-	# viewer.show()
-	print (test_image.shape)
-
-	if len(test_image.shape) > 2 and test_image.shape[2] > 1:
-		test_image = rgb2gray(test_image)
-
-	print ("wee: {:1}".format(test_image.max()))
-	binary_image = np.where(test_image<0.6, 0.0, 1.0)
-
-	# viewer = ImageViewer(binary_image)
-	# viewer.show()
-
-	label_image = label(binary_image)
-	num = label_image.max()
-
-	# print (num)
-
-	regionprops_data = regionprops(label_image)
-
-	remove_indices = []
-	for i in range(num):
-		circularities = math.pow(regionprops_data[i].perimeter,2)/(4*math.pi*regionprops_data[i].area)
-		if (circularities <= 1):
-			remove_indices.append(i)
-
-	num = num - len(remove_indices)
-	# print(num)
-
-	for i in sorted(remove_indices, reverse=True):
-		del regionprops_data[i]
-
-	rows=[]
-	rows.append(0)
-
-	fontSize = int(binary_image.shape[1]/4) # param - low cuz current method of cropping leaves alot of white space above and below actual chars
-	print (filename)
-	print ("fontSize: ")
-	print(fontSize)	
-
-	# fontSize = 20
-
-	for i in range(num-1):
-		data_1 = regionprops_data[i]
-		data_2 = regionprops_data[i+1]
-		# print("centroids:")
-		# print(data_1.centroid)
-
-		# bounding box: (min_row, min_col, max_row, max_col)
-		if ((data_2.bbox[0] - data_1.bbox[2]) > fontSize):
-			val = int((data_2.bbox[0] + data_1.bbox[2])/2)
-			rows.append(val)
-			
-	rows.append(binary_image.shape[0])
-	# print(rows)
-
-	if not os.path.exists(output_dir):
-		os.makedirs(output_dir)
-
-	for i in range(len(rows)-1):
-		image = binary_image[rows[i]:rows[i+1],:]
-		image = rotate(image,90,resize=True)
-		# viewer = ImageViewer(image)
-		# viewer.show()
-		fileName = output_dir + "/Img{:1}.jpg".format(i)
-		io.imsave(fileName,image)
+# image.shape[1] / FONT_SIZE_FACTOR (height / FONT_SIZE_FACTOR)
+FONT_SIZE_FACTOR = 3
+# FONT_SIZE_FACTOR = 4
 
 
 def create_crop_box(box,numRow,numCol):
@@ -108,23 +43,23 @@ def create_crop_box(box,numRow,numCol):
 
 
 def split_into_letters(filename, output_dir):
-	# fileName = "Words_2/Img0.jpg" 
 	test_image = io.imread(filename)
 	test_image = rotate(test_image, -90, resize=True)
-
-	# print(test_image.shape)
 
 	if len(test_image.shape) > 2 and test_image.shape[2] > 1:
 		test_image = rgb2gray(test_image)
 
 	# viewer = ImageViewer(test_image)
 	# viewer.show()
-	print (test_image.shape)
+	# print (test_image.shape)
 
-	# white on black
-	# white: 1, black: 0
-	binary_image = np.where(test_image<0.6, 0.0, 1.0)
-
+	# white on black ; white: 1, black: 0
+	# ==== does not invert =====
+	if (test_image.max() > 1.0): 
+		binary_image = np.where(test_image<180,0.0, 1.0) # 70%
+	else:
+		binary_image = np.where(test_image<0.7, 0.0, 1.0) # 70%
+ 
 	label_image = label(binary_image)
 	num = label_image.max()
 
@@ -158,12 +93,83 @@ def split_into_letters(filename, output_dir):
 		io.imsave(fileName,maskedImage)
 
 
+# Step 2
+def split_into_words(filename, output_dir):
+	test_image = io.imread(filename)
+	test_image = rotate(test_image, -90, resize=True)
+	print (filename)
+
+	# viewer = ImageViewer(test_image)
+	# viewer.show()
+	# print (test_image.shape)
+
+	if len(test_image.shape) > 2 and test_image.shape[2] > 1:
+		test_image = rgb2gray(test_image)
+
+	# ==== does not invert =====
+	if (test_image.max() > 1.0): 
+		binary_image = np.where(test_image<180,0.0, 1.0) # 70%
+	else:
+		binary_image = np.where(test_image<0.7, 0.0, 1.0) # 70%
+ 
+	# viewer = ImageViewer(binary_image)
+	# viewer.show()
+
+	label_image = label(binary_image)
+	num_connected_regions = label_image.max() # total number of connected regions
+
+	regionprops_data = regionprops(label_image)
+
+	remove_indices = []
+	for i in range(num_connected_regions):
+		circularities = math.pow(regionprops_data[i].perimeter,2)/(4*math.pi*regionprops_data[i].area)
+		# print("i: {:1}, circularities: {:2}".format(i,circularities))
+		if (circularities <= CIRCULARITY_THRESHOLD):
+			remove_indices.append(i)
+
+	# print (remove_indices)
+	num_connected_regions = num_connected_regions - len(remove_indices)
+
+	for i in sorted(remove_indices, reverse=True):
+		del regionprops_data[i]
+
+	rows=[]
+	rows.append(0)
+
+	fontSize = int(binary_image.shape[1]/FONT_SIZE_FACTOR) # param - low cuz current method of cropping leaves alot of white space above and below actual chars
+	print ("fontSize calculated: {:1}".format(fontSize))
+
+	# fontSize = 20
+
+	for i in range(num_connected_regions-1):
+		data_1 = regionprops_data[i]
+		data_2 = regionprops_data[i+1]
+		# print("centroids:")
+		# print(data_1.centroid)
+
+		# bounding box: (min_row, min_col, max_row, max_col)
+		if ((data_2.bbox[0] - data_1.bbox[2]) > fontSize):
+			val = int((data_2.bbox[0] + data_1.bbox[2])/2)
+			rows.append(val)
+			
+	rows.append(binary_image.shape[0])
+	# print(rows)
+
+	if not os.path.exists(output_dir):
+		os.makedirs(output_dir)
+
+	for i in range(len(rows)-1):
+		image = binary_image[rows[i]:rows[i+1],:]
+		image = rotate(image,90,resize=True)
+		# viewer = ImageViewer(image)
+		# viewer.show()
+		fileName = output_dir + "/Img{:1}.jpg".format(i)
+		io.imsave(fileName,image)
+
+
 # Step 1
 def split_rows(filename, output_dir):
 	test_image = io.imread(filename)
-	# test_image = rotate(test_image, -90, resize=True)
-
-	# print(test_image.shape)
 
 	if len(test_image.shape) > 2 and test_image.shape[2] > 1:
 		test_image = rgb2gray(test_image)
@@ -171,20 +177,23 @@ def split_rows(filename, output_dir):
 	# viewer = ImageViewer(test_image)
 	# viewer.show()
 	# print (test_image.shape) # temp
-# 
-	# white on black
-	# white: 1, black: 0
-	# binary_image = np.where(test_image<0.6, 1.0, 0.0)
-	binary_image = np.where(test_image<200, 1.0, 0.0)
+
+	# white on black ; white: 1, black: 0
+	# ==== inverts =====
+	if (test_image.max() > 1.0): 
+		binary_image = np.where(test_image<180, 1.0, 0.0) # 70%
+	else:
+		binary_image = np.where(test_image<0.7, 1.0, 0.0) # 70%
 
 	if not os.path.exists(output_dir):
 		os.makedirs(output_dir)
 
-	flattened_image = binary_image.sum(axis=1)
+	print("Input image shape: %s" % (test_image.shape,))
+	flattened_image = binary_image.sum(axis=1) # horizontal (sum of each row)
 	
 	# print (max(flattened_image))
 	# print(min(flattened_image))
-	# print(flattened_image)
+	print("Flattened image shape: %s" % (flattened_image.shape,))
 
 	top_row = -1
 	bottom_row = -1
@@ -244,35 +253,35 @@ def run_character_segementation_module(base_directory):
 
 	row_directories = [] 
 	# doesn't need to be sorted, each file should be a paragraph
+	print("================== Splitting paragraphs into rows ======================")
 	for i, file in enumerate(files_in_directory):
 		if file.endswith(".jpg") or file.endswith(".png"):
 			name = file.split(".");
-			input_dir = os.path.join(base_directory,file)
+			input_path = os.path.join(base_directory,file)
 			output_dir = os.path.join(base_directory,"{:1}".format(name[0]))
-			split_rows(input_dir, output_dir)
+			split_rows(input_path, output_dir)
 			row_directories.append(output_dir)
 
 	word_directories = []
-	# row_directories
+	print("================== Splitting rows into words ======================")
 	for directory in row_directories:
 		files_in_directory = [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
 		files_in_directory = alphanumeric_sort(files_in_directory)
 		# rows
 		for i, file in enumerate(files_in_directory):
-			input_dir = os.path.join(directory,file)
+			input_path = os.path.join(directory,file)
 			output_dir = os.path.join(directory,"Row{:1}".format(i))
-			split_into_words(input_dir,output_dir)
+			split_into_words(input_path,output_dir)
 			word_directories.append(output_dir)
 
-	# word_directories = alphanumeric_sort(word_directories)
+	print("================== Splitting words into letters ======================")
 	for directory in word_directories:
 		files_in_directory = [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
 		files_in_directory = alphanumeric_sort(files_in_directory)
 		# rows
 		for i, file in enumerate(files_in_directory):
-			input_dir = os.path.join(directory,file)
+			input_path = os.path.join(directory,file)
 			output_dir = os.path.join(directory,"Word{:1}".format(i))
-			split_into_letters(input_dir,output_dir)
-
+			split_into_letters(input_path,output_dir)
 
 run_character_segementation_module("../ROOT_DIR/")

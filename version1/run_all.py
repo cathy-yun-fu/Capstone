@@ -67,6 +67,7 @@ def Step2():
 			out = pre_process_path + filename + ".png"
 			iam.preprocess(path,out)
 
+# char seg
 def Step3():
 	folders = [f for f in os.listdir(pre_process_path) if os.path.isdir(os.path.join(pre_process_path, f))]
 	for f in folders: # clean up folder before running
