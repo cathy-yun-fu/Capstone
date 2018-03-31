@@ -7,7 +7,6 @@ import pickle
 import re
 import argparse
 
-
 # Global variables
 DESIRED_SIZE = 28
 MAPPING_DIST = "bin/balanced_mapping.p"
