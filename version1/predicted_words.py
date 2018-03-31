@@ -83,8 +83,9 @@ def get_accuracy(predicted, target_path):
     for index in range(len(arr)):
         if predicted[index] == target[index]:
             count += 1
-
-    return count/len(arr)
+    acc = str(count/len(arr))
+    print("accuracy is: " + acc)
+    return acc
 
 
 if __name__ == '__main__':
@@ -92,31 +93,42 @@ if __name__ == '__main__':
     parser.add_argument('--test', action='store_true', default=False, help='use test folder')
     args = parser.parse_args()
 
+    # Define path
     if args.test:
         img_dir_path = TEST_DIR
     else:
         img_dir_path = PARAGRAPH_DIR
 
+    # Create output directory if not exist
     if not os.path.exists(OUTPUT_DIR):
         os.makedirs(OUTPUT_DIR)
+
+    # Remove acc.txt if exist
+    try:
+        os.remove(OUTPUT_DIR + 'acc.txt')
+    except OSError:
+        pass
 
     model = load_model(MODEL_PATH)
     text_name = ''
     for para_path in alphanumeric_sort(glob.glob(img_dir_path)):
-        sentence = []
-        text_name = basename(para_path).split(';')[0]
-        for word_im_pth in alphanumeric_sort(glob.glob(para_path + '/Row*/Word*/')):
-            for im_pth in alphanumeric_sort(glob.glob(word_im_pth + '*.jpg')):
-                print('predicting image ', im_pth)
-                new_img = resize_img(im_pth, DESIRED_SIZE)
-                new_img = new_img / 255
-                new_img = new_img.reshape(1, 28, 28, 1)
-                label = model.predict_classes(new_img)
-                mapping = pickle.load(open(MAPPING_DIST, "rb"))
-                character = chr(mapping[label[0]])
-                sentence.append(character.lower())
-                print('predicted char:', character)
-            sentence.append(' ')
-        print("accuracy is : ", get_accuracy(sentence, text_name))
-        with open(OUTPUT_DIR + str(text_name) + '.txt', "w") as text_file:
-            text_file.write(''.join(sentence))
+        if ".png" not in para_path:
+            sentence = []
+            text_name = str(basename(para_path).split(';')[0])
+            for word_im_pth in alphanumeric_sort(glob.glob(para_path + '/Row*/Word*/')):
+                for im_pth in alphanumeric_sort(glob.glob(word_im_pth + '*.jpg')):
+                    print('predicting image ', im_pth)
+                    new_img = resize_img(im_pth, DESIRED_SIZE)
+                    new_img = new_img / 255
+                    new_img = new_img.reshape(1, 28, 28, 1)
+                    label = model.predict_classes(new_img)
+                    mapping = pickle.load(open(MAPPING_DIST, "rb"))
+                    character = chr(mapping[label[0]])
+                    sentence.append(character.lower())
+                    print('predicted char:', character)
+                sentence.append(' ')
+            acc_msg = "accuracy for " + text_name + " is: " + get_accuracy(sentence, text_name) + '\n'
+            with open(OUTPUT_DIR + 'acc.txt', "a") as text_file:
+                text_file.write(acc_msg)
+            with open(OUTPUT_DIR + text_name + '.txt', "w") as text_file:
+                text_file.write(''.join(sentence))
