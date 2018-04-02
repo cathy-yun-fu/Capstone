@@ -139,8 +139,8 @@ if __name__ == '__main__':
                     sentence.append(character.lower())
                     print('predicted char:', character)
                 sentence.append(' ')
-            acc_msg = "accuracy for " + text_name + " is: " + get_accuracy(sentence, text_name) + '\n'
-            with open(OUTPUT_DIR + 'acc.txt', "a") as text_file:
-                text_file.write(acc_msg)
+            # acc_msg = "accuracy for " + text_name + " is: " + get_accuracy(sentence, text_name) + '\n'
+            # with open(OUTPUT_DIR + 'acc.txt', "a") as text_file:
+            #     text_file.write(acc_msg)
             with open(OUTPUT_DIR + basename(para_path) + '.txt', "w") as text_file:
                 text_file.write(''.join(sentence))
