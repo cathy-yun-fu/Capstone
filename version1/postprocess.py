@@ -1,6 +1,7 @@
 import re
 from collections import Counter
 import sys
+import os
 
 DICT = Counter()
 
@@ -41,15 +42,30 @@ def correction(word):
 
 if __name__ == "__main__":
 	DICT = createDict('big.txt')
-	if (len(sys.argv) == 1):
-		file = input('filename: ')
-	else:
-		file = sys.argv[1]
-	print("Correcting file", file)
-	text = open(file).read()
-	words = re.findall(r'\w+', text.lower())
-	output = open("out.txt", "w")
-	for word in words:
-		word = word.lower()
-		output.write(correction(word) + " ")
-	print("Correction in out.txt")
+	# if (len(sys.argv) == 1):
+	# 	file = input('filename: ')
+	# else:
+	# 	file = sys.argv[1]
+
+	INPUT_DIR = "outputText"
+	OUTPUT_DIR = "output_final"
+
+
+	if not os.path.exists(OUTPUT_DIR):
+		os.makedirs(OUTPUT_DIR)
+
+	files_in_directory = [f for f in os.listdir(INPUT_DIR) if os.path.isfile(os.path.join(INPUT_DIR, f))]
+
+	for i, file in enumerate(files_in_directory):
+		if ("acc" in file):
+			continue
+		input_path = INPUT_DIR + "/" + file
+		print("Correcting file", input_path)
+		text = open(input_path).read()
+		words = re.findall(r'\w+', text.lower())
+		output_path = OUTPUT_DIR + "/{:1}".format(file)
+		output = open(output_path, "w")
+		for word in words:
+			word = word.lower()
+			output.write(correction(word) + " ")
+		print("Correction in {:1}".format(output_path))
