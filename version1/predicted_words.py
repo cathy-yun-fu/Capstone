@@ -9,9 +9,12 @@ import argparse
 
 # Global variables
 DESIRED_SIZE = 28
-MAPPING_DIST = "bin/balanced_mapping.p"
+MAPPING_DIST_BALANCED = "bin/balanced_mapping.p"
+MAPPING_DIST_LETTER = "bin/letter_mapping.p"
 OUTPUT_DIR = "output/"
-MODEL_PATH = 'bin/old/balanced30_v2/'
+MODEL_PATH_BALANCED = 'bin/balanced50_Adadelta_v2/'
+MODEL_PATH_LETTER = 'bin/letters10_Adadelta_v2/'
+
 PARAGRAPH_DIR = '../sampleGenerator/ROOT_DIR/*'
 TEST_DIR = 'test_data/'
 TARGET_FILE_PATH = '../sampleGenerator/textfile/'
@@ -90,6 +93,7 @@ def get_accuracy(predicted, target_path):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(usage='A script for predcting the image with model.yaml')
     parser.add_argument('--test', action='store_true', default=False, help='use test folder')
+    parser.add_argument('--letter', action='store_true', default=False, help='use letter model')
     args = parser.parse_args()
 
     # Define path
@@ -108,7 +112,12 @@ if __name__ == '__main__':
     except OSError:
         pass
 
-    model = load_model(MODEL_PATH)
+    if args.letter:
+        model_path = MODEL_PATH_LETTER
+    else:
+        model_path = MODEL_PATH_BALANCED
+
+    model = load_model(model_path)
     text_name = ''
     for para_path in alphanumeric_sort(glob.glob(img_dir_path)):
         if ".png" not in para_path:
@@ -120,14 +129,18 @@ if __name__ == '__main__':
                     new_img = resize_img(im_pth, DESIRED_SIZE)
                     new_img = new_img / 255
                     new_img = new_img.reshape(1, 28, 28, 1)
-                    label = model.predict_classes(new_img)
-                    mapping = pickle.load(open(MAPPING_DIST, "rb"))
-                    character = chr(mapping[label[0]])
+                    if args.letter:
+                        label = model.predict_classes(new_img)[0] + 1
+                        mapping = pickle.load(open(MAPPING_DIST_LETTER, "rb"))
+                    else:
+                        label = model.predict_classes(new_img)[0]
+                        mapping = pickle.load(open(MAPPING_DIST_BALANCED, "rb"))
+                    character = chr(mapping[label])
                     sentence.append(character.lower())
                     print('predicted char:', character)
                 sentence.append(' ')
             acc_msg = "accuracy for " + text_name + " is: " + get_accuracy(sentence, text_name) + '\n'
             with open(OUTPUT_DIR + 'acc.txt', "a") as text_file:
                 text_file.write(acc_msg)
-            with open(OUTPUT_DIR + text_name + '.txt', "w") as text_file:
+            with open(OUTPUT_DIR + basename(para_path) + '.txt', "w") as text_file:
                 text_file.write(''.join(sentence))
