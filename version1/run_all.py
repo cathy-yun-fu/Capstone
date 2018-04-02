@@ -77,7 +77,17 @@ def Step3():
 			shutil.rmtree(path) # deletes folder that also has content
 	seg.run_character_segementation_module(pre_process_path)
 
+# char recognition
+def Step4():
+	print("predicted_words.py")
+	# output text file into folder
+
+# post process
+def Step5():
+	print("postprocess.py")
+
 def run_all(step):
+	MAX_STEP = 5
 	try:
 		step = int(step)
 	except:
@@ -90,8 +100,13 @@ def run_all(step):
 		Step2()
 	if (step <=3):
 		Step3()
-	else:
-		print("Invalid step number")
+	if (step<=4):
+		Step4()
+	if (step<=5):
+		Step5()
+
+	if (Step > MAX_STEP):
+		print("Invalid step number, max step number is {:1}".format(MAX_STEP))
 	
 if __name__ == "__main__":
 	if (len(sys.argv) == 1):
