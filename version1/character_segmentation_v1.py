@@ -9,8 +9,8 @@ from skimage.transform import rotate
 from skimage import io
 from skimage.viewer import ImageViewer
 
-CIRCULARITY_THRESHOLD = 0.2
-# CIRCULARITY_THRESHOLD = 1
+# CIRCULARITY_THRESHOLD = 0.2
+CIRCULARITY_THRESHOLD = 1
 
 # image.shape[1] / FONT_SIZE_FACTOR (height / FONT_SIZE_FACTOR)
 FONT_SIZE_FACTOR = 3

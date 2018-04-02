@@ -15,7 +15,7 @@ OUTPUT_DIR = "output/"
 MODEL_PATH_BALANCED = 'bin/balanced50_Adadelta_v2/'
 MODEL_PATH_LETTER = 'bin/letters10_Adadelta_v2/'
 
-PARAGRAPH_DIR = '../sampleGenerator/ROOT_DIR/*'
+PARAGRAPH_DIR = '../ROOT_DIR/*'
 TEST_DIR = 'test_data/'
 TARGET_FILE_PATH = '../sampleGenerator/textfile/'
 

@@ -5,8 +5,8 @@ import matplotlib
 from matplotlib import pyplot as plt
 from operator import itemgetter
 
-def preprocess(img_id):
-	img = cv2.imread(img_id + ".png", 0)
+def preprocess(img_id, output_path = None):
+	img = cv2.imread(img_id, 0)
 
 	# Shadow removal
 	struct = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(30,30))
@@ -91,28 +91,32 @@ def preprocess(img_id):
 	# x,y coords of all white pixels
 	coords = np.column_stack(np.where(inv > 0))
 
-	# Find rotated bounding box
-	rect = cv2.minAreaRect(coords)
-	angle = rect[-1]
-	if angle < -45:
-		angle = -(90 + angle)
-	else:
-		angle = -angle
+	# # Find rotated bounding box
+	# rect = cv2.minAreaRect(coords)
+	# angle = rect[-1]
+	# if angle < -45:
+	# 	angle = -(90 + angle)
+	# else:
+	# 	angle = -angle
 
-	# rotate the image to deskew it
-	(h_img, w_img) = crop.shape[:2]
-	(h, w) = np.int0(rect[1])
-	center = (rect[0][1], rect[0][0])
-	M = cv2.getRotationMatrix2D(center, angle, 1.0)
-	rotated = cv2.warpAffine(crop, M, (w_img, h_img),
-		flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
+	# # rotate the image to deskew it
+	# (h_img, w_img) = crop.shape[:2]
+	# (h, w) = np.int0(rect[1])
+	# center = (rect[0][1], rect[0][0])
+	# M = cv2.getRotationMatrix2D(center, angle, 1.0)
+	# rotated = cv2.warpAffine(crop, M, (w_img, h_img),
+	# 	flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
 
 	# Save the final image
-	fig = plt.imshow(rotated, cmap='gray')
+	fig = plt.imshow(crop, cmap='gray')
 	plt.axis('off')
 	fig.axes.get_xaxis().set_visible(False)
 	fig.axes.get_yaxis().set_visible(False)
-	plt.savefig(img_id + "_1", bbox_inches='tight', pad_inches = 0, dpi=300)
+	img_id = img_id.split('.')[0]
+	if output_path:
+		img_id = output_path
+	print(img_id)
+	plt.savefig(img_id, bbox_inches='tight', pad_inches = 0, dpi=300)
 
 
 if __name__ == "__main__":

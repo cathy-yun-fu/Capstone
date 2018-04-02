@@ -10,10 +10,12 @@ from PIL import Image
 
 # our files
 import preprocess_iam as iam
+import preprocess_real as real
 import parse_data as parse
 import character_segmentation_v1 as seg
 
-mypath_iam = "../IAMData/data/"	
+mypath_iam = "../IAMData/data/"
+mypath_real = "../INPUT_DIR/"	
 pre_process_path = "../ROOT_DIR/"
 
 # download step
@@ -56,16 +58,16 @@ def Step2():
 			path = pre_process_path + file
 			os.remove(path) 
 			
-	onlyfiles = [f for f in os.listdir(mypath_iam) if os.path.isfile(os.path.join(mypath_iam, f))]
+	onlyfiles = [f for f in os.listdir(mypath_real) if os.path.isfile(os.path.join(mypath_real, f))]
 
 	print (onlyfiles)
 
 	for file in onlyfiles:
-		if (file.endswith(".jpg")):
-			filename, ext = os.path.splitext(file)
-			path = mypath_iam + file
-			out = pre_process_path + filename + ".png"
-			iam.preprocess(path,out)
+		#if (file.endswith(".jpg")):
+		filename, ext = os.path.splitext(file)
+		path = mypath_real + file
+		out = pre_process_path + filename + ".png"
+		real.preprocess(path,out)
 
 # char seg
 def Step3():
@@ -105,7 +107,7 @@ def run_all(step):
 	if (step<=5):
 		Step5()
 
-	if (Step > MAX_STEP):
+	if (step > MAX_STEP):
 		print("Invalid step number, max step number is {:1}".format(MAX_STEP))
 	
 if __name__ == "__main__":
