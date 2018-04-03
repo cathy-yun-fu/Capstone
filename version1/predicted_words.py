@@ -13,7 +13,7 @@ MAPPING_DIST_BALANCED = "bin/balanced_mapping.p"
 MAPPING_DIST_LETTER = "bin/letter_mapping.p"
 OUTPUT_DIR = "output/"
 MODEL_PATH_BALANCED = 'bin/balanced50_Adadelta_v2/'
-MODEL_PATH_LETTER = 'bin/letters10_Adadelta_v2/'
+MODEL_PATH_LETTER = 'bin/letter50_Adadelta_v2/'
 
 PARAGRAPH_DIR = '../ROOT_DIR/*'
 TEST_DIR = 'test_data/'

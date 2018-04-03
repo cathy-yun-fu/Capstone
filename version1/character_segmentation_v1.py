@@ -11,6 +11,8 @@ from skimage.viewer import ImageViewer
 
 # CIRCULARITY_THRESHOLD = 0.2
 CIRCULARITY_THRESHOLD = 1
+END_THRESH = 10
+FRAC_H = 0.5
 
 # image.shape[1] / FONT_SIZE_FACTOR (height / FONT_SIZE_FACTOR)
 FONT_SIZE_FACTOR = 3
@@ -68,6 +70,9 @@ def split_into_letters(filename, output_dir):
 	if not os.path.exists(output_dir):
 		os.makedirs(output_dir)
 
+	letter_end = 0
+	total_h = 0
+
 	for i in range(1,num+1):
 		maskedImage = np.where(label_image==i,1.0,0)
 		binaryImage = np.where(label_image==i,1,0)
@@ -75,11 +80,25 @@ def split_into_letters(filename, output_dir):
 		
 		circularities = math.pow(regionprops_data[0].perimeter,2)/(4*math.pi*regionprops_data[0].area)
 		if circularities <= 1:
-			continue;
+			continue
 
 		# bounding box: (min_row, min_col, max_row, max_col)
 		r1,r2,c1,c2 = create_crop_box(regionprops_data[0].bbox, binary_image.shape[0],binary_image.shape[1])
+		if r2 < letter_end + END_THRESH and r2 > letter_end - END_THRESH:
+			continue
+		letter_end = r2
+
+		if i == num:
+			avg_h = total_h/(num-1)
+			total_h = 0
+			if c2 - c1 < FRAC_H * avg_h:
+				continue
+
+		total_h += c2 - c1
+
 		maskedImage = maskedImage[r1:r2,c1:c2]
+		col1 = c1
+		col2 = c2
 		# print(i)
 		# print(regionprops_data[0].bbox)
 		# print("{:1} {:2} {:3} {:4}".format(r1,r2,c1,c2))
