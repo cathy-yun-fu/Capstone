@@ -108,12 +108,16 @@ def build_net2(training_data, optimizer, width=28, height=28, verbose=False):
     return model
 
 
-def train(model, training_data, dir_name, batch_size=256, epochs=30):
+def train(model, training_data, dir_name, batch_size=256, epochs=30, letter=False):
     (x_train, y_train), (x_test, y_test), mapping, nb_classes = training_data
 
     # convert class vectors to binary class matrices
-    y_train = np_utils.to_categorical(y_train, nb_classes)
-    y_test = np_utils.to_categorical(y_test, nb_classes)
+    if letter:
+        y_train = np_utils.to_categorical(y_train-1, nb_classes)
+        y_test = np_utils.to_categorical(y_test-1, nb_classes)
+    else:
+        y_train = np_utils.to_categorical(y_train, nb_classes)
+        y_test = np_utils.to_categorical(y_test, nb_classes)
 
     history_callback = model.fit(x_train, y_train,
           batch_size=batch_size,
@@ -187,6 +191,7 @@ if __name__ == '__main__':
     parser.add_argument('--max', type=int, default=None, help='Max amount of data to use')
     parser.add_argument('--epochs', type=int, default=30, help='Number of epochs to train on')
     parser.add_argument('--verbose', action='store_true', default=False, help='Enables verbose printing')
+    parser.add_argument('--letter', action='store_true', default=False, help='use letter data')
     args = parser.parse_args()
 
     bin_dir = os.path.dirname(os.path.realpath(__file__)) + '/bin/'
@@ -194,10 +199,13 @@ if __name__ == '__main__':
         os.makedirs(bin_dir)
 
     training_data = load_mnist_data.load_data(args.file, width=args.width, height=args.height,
-                                              max_=args.max, verbose=args.verbose)
+                                              max_=args.max, verbose=args.verbose, letter=args.letter)
 
-    optimizer = ['adam', 'RMSprop', 'Adagrad', 'Adadelta']
-    version = ['v1', 'v2']
+    # optimizer = ['adam', 'RMSprop', 'Adagrad', 'Adadelta']
+    # version = ['v1', 'v2']
+
+    optimizer = ['Adadelta']
+    version = ['v2']
 
     for ver in version:
         for op in optimizer:
@@ -212,5 +220,5 @@ if __name__ == '__main__':
                 model = build_net1(training_data, op, width=28, height=28)
             else:
                 model = build_net2(training_data, op, width=args.width, height=args.height, verbose=args.verbose)
-            train(model, training_data, dir_name=dir_name, epochs=args.epochs)
+            train(model, training_data, dir_name=dir_name, epochs=args.epochs, letter=args.letter)
 

@@ -3,8 +3,7 @@ import pickle
 import numpy as np
 
 
-
-def load_data(mat_file_path, width=28, height=28, max_=None, verbose=True):
+def load_data(mat_file_path, width=28, height=28, max_=None, verbose=True, letter=False):
     ''' Load data in from .mat file as specified by the paper.
         Arguments:
             mat_file_path: path to the .mat, should be in sample/
@@ -39,9 +38,13 @@ def load_data(mat_file_path, width=28, height=28, max_=None, verbose=True):
     # Load convoluted list structure form loadmat
     mat = loadmat(mat_file_path)
 
+    if letter:
+        mapping_dist = 'bin/letter_mapping.p'
+    else:
+        mapping_dist = 'bin/balanced_mapping.p'
     # Load char mapping
     mapping = {kv[0]:kv[1:][0] for kv in mat['dataset'][0][0][2]}
-    pickle.dump(mapping, open('bin/balanced_mapping.p', 'wb'))
+    pickle.dump(mapping, open(mapping_dist, 'wb'))
 
     # Load training data
     if max_ == None:
