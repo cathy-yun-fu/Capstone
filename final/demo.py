@@ -56,10 +56,11 @@ def preprocess(run_benchmark, verbose):
 	files = [f for f in os.listdir(src) if os.path.isfile(os.path.join(src, f))]
 
 	for file in files:
-		path = src + file
-		filename = file.split('.')[0]
-		out = pre_process_path + filename + ".png"
-		prep.preprocess(path, out, verbose)
+		if file.endswith(".jpg") or file.endswith(".png"):
+			path = src + file
+			filename = file.split('.')[0]
+			out = pre_process_path + filename + ".png"
+			prep.preprocess(path, out, verbose)
 
 # char segmentation
 def segment(verbose):

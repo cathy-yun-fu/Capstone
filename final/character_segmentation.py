@@ -2,6 +2,9 @@ import os
 import math
 import numpy as np
 import re # alphaneumeric order
+import matplotlib
+matplotlib.use('TkAgg')
+from matplotlib import pyplot as plt
 
 from skimage.measure import label, regionprops
 from skimage.color import rgb2gray
@@ -253,11 +256,27 @@ def run_character_segementation_module(base_directory, verbose):
 			split_into_letters(input_path,output_dir)
 			char_directories.append(output_dir)
 
-	# if verbose:
-	# 	for directory in row_directories:
-	# 		files_in_directory = [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
-	# 		files_in_directory = alphanumeric_sort(files_in_directory)
-	# 		for i, file in enumerate(files_in_directory):
+	if verbose:
+		for directory in row_directories:
+			rows = [os.path.join(directory,f) for f in os.listdir(directory) if os.path.isdir(os.path.join(directory, f))]
+			rows = alphanumeric_sort(rows)
+			for row in rows:
+				words = [os.path.join(row,f) for f in os.listdir(row) if os.path.isdir(os.path.join(row, f))]
+				letters = []
+				max_len = 0
+				words = alphanumeric_sort(words)
+				for word in words:
+					chars = [os.path.join(word,f) for f in os.listdir(word) if os.path.isfile(os.path.join(word, f))]
+					chars = alphanumeric_sort(chars)
+					letters.append(chars)
+					if len(chars) > max_len:
+						max_len = len(chars)
+				fig, axes = plt.subplots(nrows=len(words), ncols=max_len)
+				for i in range(len(words)):
+					for j in range(len(letters[i])):
+						axes[i,j].imshow(io.imread(letters[i][j]))
+				plt.axis('off')
+				plt.show()
 
 if __name__ == '__main':
 	run_character_segementation_module("../ROOT_DIR/")
