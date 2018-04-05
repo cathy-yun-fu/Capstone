@@ -63,7 +63,7 @@ def alphanumeric_sort(list):
     alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
     return sorted(list, key=alphanum_key)
 
-def char_recognition(args, input_dir, output_dir):
+def char_recognition(args, input_dir, output_dir, verbose):
     # Define path
     if args.test:
         img_dir_path = test_dir
@@ -99,7 +99,8 @@ def char_recognition(args, input_dir, output_dir):
                     character = chr(mapping[label])
                     sentence.append(character.lower())
                 sentence.append(' ')
-
+            if verbose:
+                print("Predicted:", ''.join(sentence))
             with open(output_dir + basename(para_path) + '.txt', "w") as text_file:
                 text_file.write(''.join(sentence))
 

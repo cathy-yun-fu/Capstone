@@ -58,15 +58,22 @@ def candidates(word):
 def correction(word):
 	return max(candidates(word), key=prob)
 
-def spellcheck(input_path, output_path):
+def spellcheck(input_path, output_path, verbose):
 	# DICT = createDict('big.txt')
 	text = open(input_path).read()
 	words = re.findall(r'\w+', text.lower())
 	output = open(output_path, "w")
+	corrected = ""
 	for word in words:
 		word = word.lower()
-		output.write(correction(word) + " ")
-	print("Correction in {:1}".format(output_path))
+		cor_word = correction(word)
+		output.write(cor_word + " ")
+		corrected += cor_word + " "
+	output.close()
+	if verbose:
+		print("Correction:", corrected)
+	else:
+		print("Correction saved in {:1}".format(output_path))
 
 if __name__ == "__main__":
 	INPUT_DIR = "output"

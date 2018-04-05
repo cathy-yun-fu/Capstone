@@ -5,7 +5,8 @@ import matplotlib
 from matplotlib import pyplot as plt
 from operator import itemgetter
 
-def preprocess(img_id, output_path = None):
+def preprocess(img_id, output_path = None, verbose=False):
+	original = cv2.imread(img_id)
 	img = cv2.imread(img_id, 0)
 
 	# Shadow removal
@@ -17,6 +18,12 @@ def preprocess(img_id, output_path = None):
 	# Remove the background from the original image
 	clean_img = img/(closing*1.0)
 	
+	if verbose:
+		plt.imshow(closing, cmap='gray')
+		plt.show()
+		plt.imshow(clean_img, cmap='gray')
+		plt.show()
+
 	# Normalize pixel values back to uint8
 	min_val = np.amin(clean_img)
 	max_val = np.amax(clean_img)
@@ -35,6 +42,10 @@ def preprocess(img_id, output_path = None):
 	# Fill in the text using dilations
 	struct = cv2.getStructuringElement(cv2.MORPH_RECT,(5,5))
 	im2 = cv2.dilate(im_edges, struct, iterations = 15)
+
+	if verbose:
+		plt.imshow(im2, cmap='gray')
+		plt.show()
 	
 	# Find connected components in the image
 	im2, contours, hierarchy = cv2.findContours(im2, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -83,6 +94,9 @@ def preprocess(img_id, output_path = None):
 
 	# Crop image to text
 	x1, y1, x2, y2 = crop
+	cv2.rectangle(original, (x1, y1), (x2, y2), (0,255,0),5)
+	plt.imshow(original)
+	plt.show()
 	crop = thresh_img[y1:y2+1, x1:x2+1]
 
 	# Invert the image
